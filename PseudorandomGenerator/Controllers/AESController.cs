@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PseudorandomGenerator.Application;
+using PseudorandomGenerator.Application.Detyra1;
 using PseudorandomGenerator.Application.Detyra2;
+using PseudorandomGenerator.Application.Detyra3;
 using PseudorandomGenerator.Application.Detyra4;
 
 namespace PseudorandomGenerator.Controllers
@@ -9,13 +11,14 @@ namespace PseudorandomGenerator.Controllers
     [Route("[controller]")]
     public class AESController : ControllerBase
     {
-        private AesService AesService = new AesService();
         private SAESService SAESService = new SAESService();
         private CCM CCM = new CCM();
         private DecryptSimplifiedAES DecryptSimplifiedAES = new DecryptSimplifiedAES();
         private CCMEncryption CCMEncryption = new CCMEncryption();
         private GCMEncryption GCMEncryption = new GCMEncryption();
+        private XTSEncryption XTSEncryption = new XTSEncryption();
         private MDSCalculator MDSCalculator = new MDSCalculator();
+        private Analysis Analysis = new Analysis();
 
         [HttpGet]
         [Route("aes")]
@@ -27,13 +30,6 @@ namespace PseudorandomGenerator.Controllers
             //SAESService.Encrpyt();
             //SAESService.Decrypt();
 
-            //CCM.EncryptWithCCM();
-
-            //DecryptSimplifiedAES.Decrypt();
-
-            //AesService.AES_simplified();
-
-
             //This works - Detyra 2
             //CCMEncryption.EncryptCCM();
             //Console.WriteLine("Starting decryption");
@@ -43,27 +39,44 @@ namespace PseudorandomGenerator.Controllers
             //var result = GCMEncryption.EncryptWithGCMComplete("A2B4");
             //var decResult = GCMEncryption.DecryptWithGCMComplete(result.ciphertext, "A2B4", result.tag);
 
-            byte[,] matrix2 = new byte[,]
-            {
-                { 0x57, 0x83, 0x1A },
-                { 0xC1, 0xF3, 0x99 },
-                { 0x76, 0xD4, 0xAA }
-            };
+            //This works - Detyra 2
+            //XTSEncryption.EncryptXTS();
+            //XTSEncryption.DecryptXTS();
 
-            var oki = MDSCalculator.Determinant3x3(matrix2);
-            MDSCalculator.PrintMatrix(matrix2);
+            //This works - Detyra 3
+            //Analysis.DifferentialCryptanalysis();
+            //Analysis.LinearCryptanalysis();
 
-            int[,] matrix = new int[,]
-            {
-                { 1, 2, 3, 4 },
-                { 5, 6, 7, 8 },
-                { 9, 10, 11, 12 },
-                { 13, 14, 15, 16 }
-            };
+            //This works - Detyra 4
+            //TODO: Generate the matrix on the same field
 
-            var ok = MDSCalculator.TruncateMDSMatrix(3, 0, 0, matrix);
-            MDSCalculator.PrintMatrix(ok);
+            //byte[,] mds = new byte[,]
+            //{
+            //    { 0x57, 0x83, 0x1A, 0x25},
+            //    { 0xC1, 0xF3, 0x99, 0x66},
+            //    { 0x76, 0xD4, 0xAA, 0xAA},
+            //    { 0x12, 0xC4, 0xA7, 0x33}
+            //};
 
+            //byte[,] matrix = new byte[,]
+            //{
+            //    { 0x57, 0x01, 0x1A, 0x25},
+            //    { 0xC1, 0xF3, 0x99, 0x66},
+            //    { 0x76, 0xD4, 0xAA, 0xAA},
+            //    { 0x12, 0xC4, 0xA7, 0x33}
+            //};
+
+            //var check = MDSCalculator.CheckMDSMatrix(mds);
+
+            //var matrix_multiply = MDSCalculator.MultiplyMatricesGF(mds, matrix);
+
+            //var new_matrix = MDSCalculator.FindMatrix(matrix);
+
+            //var new_matrix_prod = MDSCalculator.MultiplyMatricesGF(mds, new_matrix);
+
+            //var check_difusion = MDSCalculator.CheckDifusionEffect(matrix_multiply, new_matrix_prod);
+
+            //Console.WriteLine(check_difusion);
 
             return Ok();
         }

@@ -79,13 +79,13 @@ public class GCMEncryption
         }
 
         // Step 3: Decrypt the ciphertext using CTR mode
-        return EncryptWithGCM(ciphertext, key, initialCounter); // CTR decryption is the same as encryption
+        return EncryptWithGCM(ciphertext, key, initialCounter);
     }
 
     public string[,] EncryptWithGCM(string[,] plaintext, string[,] key, string initialCounter)
     {
         string[,] encryptedText = new string[2, 2];
-        string[,] counter = ConvertHexStringToMatrix(initialCounter); // Convert counter to matrix form
+        string[,] counter = ConvertHexStringToMatrix(initialCounter);
         PrintMatrix(counter, "Counter");
 
         // XOR each plaintext block with AES-encrypted counter block
@@ -122,17 +122,11 @@ public class GCMEncryption
     {
         string[,] matrix = new string[2, 2];
 
-        // Ensure the hex string has at least 4 characters (2 hex digits per position)
-        if (hexString.Length != 4)
-        {
-            throw new ArgumentException("Hex string must be 4 characters long.");
-        }
-
         // Fill the matrix row by row
-        matrix[0, 0] = hexString.Substring(0, 1); // First character
-        matrix[0, 1] = hexString.Substring(1, 1); // Second character
-        matrix[1, 0] = hexString.Substring(2, 1); // Third character
-        matrix[1, 1] = hexString.Substring(3, 1); // Fourth character
+        matrix[0, 0] = hexString.Substring(0, 1);
+        matrix[0, 1] = hexString.Substring(1, 1);
+        matrix[1, 0] = hexString.Substring(2, 1);
+        matrix[1, 1] = hexString.Substring(3, 1);
 
         return matrix;
     }
@@ -140,15 +134,17 @@ public class GCMEncryption
 
     private void IncrementCounter(string[,] counter)
     {
-        // Simple increment of the counter (treat as hex values)
+        // Simple increment of the counter
         int value = Convert.ToInt32(counter[1, 1], 16);
-        value = (value + 1) % 0x10000; // Wrap around after 65536
+
+        // Wrap around after 65536
+        value = (value + 1) % 0x10000;
         counter[1, 1] = value.ToString("X");
     }
 
     public string ComputeGaloisHash(string[,] ciphertext, string[,] aad)
     {
-        string ghash = "0"; // Initialize the hash as 0
+        string ghash = "0";
 
         // Process additional authenticated data (AAD) if any
         if (aad != null)
@@ -177,29 +173,27 @@ public class GCMEncryption
         return matrix[0, 0] + matrix[0, 1] + matrix[1, 0] + matrix[1, 1];
     }
 
-
-
     private static int GFMul16(int a, int b)
     {
         int p = 0;
-        int irreducible = 0x840B; // P(x) irreducible polynomial from octal 210013
+        int irreducible = 0x840B;
 
         for (int i = 0; i < 16; i++)
         {
             if ((b & 1) != 0)
             {
-                p ^= a; // XOR for addition in GF(2)
+                p ^= a;
             }
-            bool carry = (a & 0x8000) != 0; // Check if the high bit is set
+            bool carry = (a & 0x8000) != 0;
             a <<= 1;
             if (carry)
             {
-                a ^= irreducible; // Reduce with irreducible polynomial if there's a carry
+                a ^= irreducible;
             }
             b >>= 1;
         }
 
-        return p & 0xFFFF; // Return only the lower 16 bits
+        return p & 0xFFFF;
     }
 
 

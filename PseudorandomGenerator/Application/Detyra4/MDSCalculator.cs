@@ -4,32 +4,77 @@ public class MDSCalculator
 {
     private const int IRREDUCIBLE_POLYNOMIAL = 0x11b;
 
-    public static bool CheckMDSMatrix(int[,] data)
+    public static bool CheckMDSMatrix(byte[,] data)
     {
+        for (int i = 0; i < 4; i++)
+        {
+            for (int j = 0; j < 4; j++)
+            {
+                if (data[i, j] == 0)
+                {
+                    return false;
+                }
+            }
+        }
+
         var matrix_0 = TruncateMDSMatrix(3, 0, 0, data);
         var matrix_1 = TruncateMDSMatrix(3, 1, 0, data);
         var matrix_2 = TruncateMDSMatrix(3, 2, 0, data);
         var matrix_3 = TruncateMDSMatrix(3, 3, 0, data);
 
-        //Determinants of the third order
-
-        var row1 = CalculateDeterminant(matrix_0);
-        var row2 = (-1) * CalculateDeterminant(matrix_1);
-        var row3 = CalculateDeterminant(matrix_2);
-        var row4 = (-1) * CalculateDeterminant(matrix_3);
+        var row1 = 1 * Determinant3x3(matrix_0);
+        var row2 = (-1) * Determinant3x3(matrix_1);
+        var row3 = 1 * Determinant3x3(matrix_2);
+        var row4 = (-1) * Determinant3x3(matrix_3);
 
         var sum_row = row1 + row2 + row3 + row4;
+
+        if (sum_row == 0) return false;
+
+        if (!CheckMinorDeterminant(matrix_0) || !CheckMinorDeterminant(matrix_1) || !CheckMinorDeterminant(matrix_2) || !CheckMinorDeterminant(matrix_3))
+            return false;
 
         return true;
     }
 
-    public static int[,] TruncateMDSMatrix(int n, int row, int column, int[,] matrix)
+    public static bool CheckMinorDeterminant(byte[,] matrix)
     {
-        // Initialize an nxn MDS matrix
-        int[,] reducedMatrix = new int[n, n];
+        var matrix_0 = TruncateMDSMatrix(2, 0, 0, matrix);
+        var matrix_1 = TruncateMDSMatrix(2, 1, 0, matrix);
+        var matrix_2 = TruncateMDSMatrix(2, 2, 0, matrix);
+
+        if (!IsDeterminantNonZero(matrix_0) || !IsDeterminantNonZero(matrix_1) || !IsDeterminantNonZero(matrix_2))
+            return false;
+
+        return true;
+    }
+
+    public static bool IsDeterminantNonZero(byte[,] matrix)
+    {
+        byte a = matrix[0, 0];
+        byte b = matrix[0, 1];
+        byte c = matrix[1, 0];
+        byte d = matrix[1, 1];
+
+        int determinant = a * d - b * c;
+
+        if (determinant == 0)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    public static byte[,] TruncateMDSMatrix(int n, int row, int column, byte[,] matrix)
+    {
+        // Initialize a 3x3 matrix since we are removing one row and one column from a 4x4 matrix
+        byte[,] reducedMatrix = new byte[n, n];
+
+        int length = matrix.GetLength(0);
 
         int rowOffset = 0;
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < length; i++)
         {
             if (i == row)
             {
@@ -38,7 +83,7 @@ public class MDSCalculator
             }
 
             int colOffset = 0;
-            for (int j = 0; j < 4; j++)
+            for (int j = 0; j < length; j++)
             {
                 if (j == column)
                 {
@@ -52,67 +97,6 @@ public class MDSCalculator
         }
 
         return reducedMatrix;
-    }
-
-    public static int CalculateDeterminant(int[,] matrix)
-    {
-        if (matrix.GetLength(0) != 3 || matrix.GetLength(1) != 3)
-        {
-            throw new ArgumentException("The input matrix must be 3x3.");
-        }
-
-        // Elements of the matrix
-        int a = matrix[0, 0];
-        int b = matrix[0, 1];
-        int c = matrix[0, 2];
-        int d = matrix[1, 0];
-        int e = matrix[1, 1];
-        int f = matrix[1, 2];
-        int g = matrix[2, 0];
-        int h = matrix[2, 1];
-        int i = matrix[2, 2];
-
-        // Using the determinant formula for a 3x3 matrix
-        int determinant = a * (e * i - f * h)
-                          - b * (d * i - f * g)
-                          + c * (d * h - e * g);
-
-        return determinant;
-    }
-
-    public static int[,] GenerateMDSMatrix(int n)
-    {
-        // Initialize an nxn MDS matrix
-        int[,] mdsMatrix = new int[n, n];
-
-        // Example: Use Vandermonde matrix construction for MDS property in GF(2)
-        // This is a simple and common method for constructing an MDS matrix.
-        for (int i = 0; i < n; i++)
-        {
-            for (int j = 0; j < n; j++)
-            {
-                // A Vandermonde matrix is defined as:
-                // A[i, j] = i^j (in the field GF(2), we compute mod 2)
-                mdsMatrix[i, j] = (int)Math.Pow(i + 1, j) % 2;
-            }
-        }
-
-        return mdsMatrix;
-    }
-
-    public static void PrintMatrix(int[,] matrix)
-    {
-        int rows = matrix.GetLength(0);
-        int cols = matrix.GetLength(1);
-
-        for (int i = 0; i < rows; i++)
-        {
-            for (int j = 0; j < cols; j++)
-            {
-                Console.Write(matrix[i, j] + " ");
-            }
-            Console.WriteLine();
-        }
     }
 
     public static byte GFMultiply(byte a, byte b)
@@ -140,7 +124,6 @@ public class MDSCalculator
         return result;
     }
 
-    // Determinant of a 3x3 matrix in GF(2^8)
     public static byte Determinant3x3(byte[,] matrix)
     {
         if (matrix.GetLength(0) != 3 || matrix.GetLength(1) != 3)
@@ -171,7 +154,25 @@ public class MDSCalculator
         return (byte)(a ^ b);
     }
 
-    // Print matrix utility
+    public static byte FlipOneBit(byte value, int bitPosition)
+    {
+        return (byte)(value ^ (1 << bitPosition));
+    }
+
+    public static byte[] FindRightColumnValues(byte[] leftColumn)
+    {
+        byte[] rightColumn = new byte[leftColumn.Length];
+
+        for (int i = 0; i < leftColumn.Length; i++)
+        {
+            byte leftValue = leftColumn[i];
+
+            rightColumn[i] = FlipOneBit(leftValue, 0);
+        }
+
+        return rightColumn;
+    }
+
     public static void PrintMatrix(byte[,] matrix)
     {
         int rows = matrix.GetLength(0);
@@ -185,5 +186,117 @@ public class MDSCalculator
             }
             Console.WriteLine();
         }
+    }
+
+    public static byte[,] MultiplyMatricesGF(byte[,] A, byte[,] B)
+    {
+        int n = A.GetLength(0); // Assuming both matrices are nxn
+        byte[,] result = new byte[n, n];
+
+        // Multiply matrices: result[i,j] = sum(A[i,k] * B[k,j]) for all k
+        for (int i = 0; i < n; i++)
+        {
+            for (int j = 0; j < n; j++)
+            {
+                byte sum = 0;
+
+                for (int k = 0; k < n; k++)
+                {
+                    byte product = GFMultiply(A[i, k], B[k, j]);
+                    sum = GFAdd(sum, product); // Add in GF(2^8)
+                }
+
+                result[i, j] = sum;
+            }
+        }
+
+        return result;
+    }
+
+    public static byte[] GetColumn(byte[,] matrix, int columnIndex)
+    {
+        byte[] column = new byte[4];
+
+        for (int i = 0; i < 4; i++)
+        {
+            column[i] = matrix[i, columnIndex];
+        }
+
+        return column;
+    }
+
+    public static byte[,] FindMatrix(byte[,] matrix)
+    {
+        var column_0 = GetColumn(matrix, 0);
+        var column_1 = GetColumn(matrix, 1);
+        var column_2 = GetColumn(matrix, 2);
+        var column_3 = GetColumn(matrix, 3);
+
+        var right_column_0 = FindRightColumnValues(column_0);
+        var right_column_1 = FindRightColumnValues(column_1);
+        var right_column_2 = FindRightColumnValues(column_2);
+        var right_column_3 = FindRightColumnValues(column_3);
+
+        byte[,] new_matrix = new byte[4, 4];
+
+        // Combine the columns into the matrix
+        for (int i = 0; i < 4; i++)
+        {
+            new_matrix[i, 0] = right_column_0[i]; // First column
+            new_matrix[i, 1] = right_column_1[i]; // Second column
+            new_matrix[i, 2] = right_column_2[i]; // Third column
+            new_matrix[i, 3] = right_column_3[i]; // Fourth column
+        }
+
+        return new_matrix;
+    }
+
+    public static int CalculateHammingDistance(byte[] col1, byte[] col2)
+    {
+        int hammingDistance = 0;
+
+        // Compare the elements of the two columns
+        for (int i = 0; i < col1.Length; i++)
+        {
+            if (col1[i] != col2[i])
+            {
+                hammingDistance++; // Increment the counter if the elements differ
+            }
+        }
+
+        return hammingDistance;
+    }
+
+    public static bool CheckDifusionEffect(byte[,] a, byte[,] b)
+    {
+        var a_column_0 = GetColumn(a, 0);
+        var b_column_0 = GetColumn(b, 0);
+
+        var dist_0 = CalculateHammingDistance(a_column_0, b_column_0);
+
+        if (dist_0 < 16) return false;
+
+        var a_column_1 = GetColumn(a, 1);
+        var b_column_1 = GetColumn(b, 1);
+
+        var dist_1 = CalculateHammingDistance(a_column_1, b_column_1);
+
+        if (dist_1 < 16) return false;
+
+        var a_column_2 = GetColumn(a, 2);
+        var b_column_2 = GetColumn(b, 2);
+
+        var dist_2 = CalculateHammingDistance(a_column_2, b_column_2);
+
+        if (dist_2 < 16) return false;
+
+        var a_column_3 = GetColumn(a, 3);
+        var b_column_3 = GetColumn(b, 3);
+
+        var dist_3 = CalculateHammingDistance(a_column_3, b_column_3);
+
+        if (dist_3 < 16) return false;
+
+        return true;
     }
 }

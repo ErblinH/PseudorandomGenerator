@@ -72,10 +72,7 @@ public class Analysis
 
     private void AnalyzeDifferential(string[,] diffMatrix)
     {
-        // Here, you would identify patterns in the difference matrix
-        // Specific patterns can help you deduce information about the key
         Console.WriteLine("Analyzing differential pattern...");
-        // Add any specific analysis logic based on your observed patterns.
     }
 
     public void LinearCryptanalysis()

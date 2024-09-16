@@ -49,7 +49,7 @@ public class CCMEncryption
         { "0", "0" }
     };
 
-    private int counter = 0; // Initialize the counter
+    private int counter = 0;
 
     #region CCM
 
@@ -58,39 +58,35 @@ public class CCMEncryption
         key_0 = key;
         counter = 0;
 
-        // Compute CBC-MAC over plaintext
+        // Compute CBC-MAC over plaintext that will be latter used for encrypting the plaintext
         var mac = ComputeCBCMAC(original_plaintext);
-        PrintMatrix(mac, "ComputeCBCMAC");
+        PrintMatrix(mac, "Generate MAC code");
 
         // Encrypt plaintext using CTR mode
+        // Store the encrypted plaintext into a variable which will latter be used
         CCMciphertext = new string[original_plaintext.GetLength(0), original_plaintext.GetLength(1)];
 
-        var okk = new List<string>();
+        var encList = new List<string>();
 
         for (int i = 0; i < original_plaintext.GetLength(0); i++)
         {
             for (int j = 0; j < original_plaintext.GetLength(1); j++)
             {
-                // Generate counter block
+                // Generate counter block which symbolizes the CTR mode 
                 var counterBlock = GenerateCounterBlock(counter++);
 
-                // Encrypt counter block
+                // Encrypt counter block using simplified AES
                 var encryptedCounter = EncryptBlock(counterBlock);
                 PrintMatrix(encryptedCounter, $"encryptedCounter counter={counter}");
 
-                var ok = XOR(original_plaintext[i, j], encryptedCounter[i, j]);
-
-                okk.Add(ok);
-
-                // XOR with plaintext
-                //ciphertext[i, j] = ok;
-                //ciphertext[i, j] = XOR(original_plaintext[i, j], encryptedCounter[i, j]);
+                var encValue = XOR(original_plaintext[i, j], encryptedCounter[i, j]);
+                encList.Add(encValue);
             }
         }
 
         string[,] myArray = {
-            {okk[0], okk[1]},
-            {okk[2], okk[3]}
+            {encList[0], encList[1]},
+            {encList[2], encList[3]}
         };
 
         CCMciphertext = myArray;
@@ -99,7 +95,7 @@ public class CCMEncryption
         var encryptedMac = EncryptMAC(mac);
         PrintMatrix(encryptedMac, "encryptedMac");
 
-        // Append encrypted MAC to ciphertext (you may need to adjust data structures)
+        // Append encrypted MAC to ciphertext
         AppendMacToCiphertext(encryptedMac);
 
         // Output final ciphertext
@@ -115,15 +111,16 @@ public class CCMEncryption
 
         return Encrpyt(block);
     }
+
+    // CBCMAC - Cipher Block Chaining-Message Authentication Code
     private string[,] ComputeCBCMAC(string[,] plaintext)
     {
-        string[,] mac = { { "0", "0" }, { "0", "0" } }; // Initialize MAC to zero
+        string[,] mac = { { "0", "0" }, { "0", "0" } };
 
         for (int i = 0; i < plaintext.GetLength(0); i++)
         {
             for (int j = 0; j < plaintext.GetLength(1); j++)
             {
-                // XOR plaintext block with MAC
                 mac[i, j] = XOR(plaintext[i, j], mac[i, j]);
             }
         }
@@ -160,10 +157,8 @@ public class CCMEncryption
         int macRows = encryptedMac.GetLength(0);
         int macCols = encryptedMac.GetLength(1);
 
-        // Create a new matrix to hold the ciphertext + MAC
         string[,] finalCiphertext = new string[ciphertextRows + macRows, ciphertextCols];
 
-        // Copy the original ciphertext to the new matrix
         for (int i = 0; i < ciphertextRows; i++)
         {
             for (int j = 0; j < ciphertextCols; j++)
@@ -194,16 +189,16 @@ public class CCMEncryption
         counter = 1;
 
         // Split ciphertext into actual ciphertext and encrypted MAC
-        var encryptedMac = ExtractMacFromCiphertext(); // ciphertext is updated to exclude MAC
+        var encryptedMac = ExtractMacFromCiphertext();
         PrintMatrix(encryptedMac, "encryptedMac");
 
         // Decrypt MAC using CTR mode
         var decryptedMac = DecryptMAC(encryptedMac);
         PrintMatrix(decryptedMac, "decryptedMac");
 
-        var okk = new List<string>();
+        var listCT = new List<string>();
 
-        // Decrypt ciphertext using CTR mode (only the actual ciphertext part, excluding MAC)
+        // Decrypt ciphertext using CTR mode
         var plaintext = new string[CCMciphertext.GetLength(0), CCMciphertext.GetLength(1)];
         counter = 0;  // Reset the counter for CTR mode
         for (int i = 0; i < CCMciphertext.GetLength(0); i++)
@@ -216,17 +211,15 @@ public class CCMEncryption
                 // Encrypt the counter block to generate keystream (same as encryption process)
                 var keystreamBlock = EncryptBlock(counterBlock);
 
-                var ok = XOR(CCMciphertext[i, j], keystreamBlock[i, j]);
+                var ct = XOR(CCMciphertext[i, j], keystreamBlock[i, j]);
 
-                okk.Add(ok);
-                // XOR keystream with ciphertext to get plaintext
-                // plaintext[i, j] = XOR(ciphertext[i, j], keystreamBlock[i, j]);
+                listCT.Add(ct);
             }
         }
 
         string[,] myArray = {
-            {okk[0], okk[1]},
-            {okk[2], okk[3]}
+            {listCT[0], listCT[1]},
+            {listCT[2], listCT[3]}
         };
 
         plaintext = myArray;
@@ -319,7 +312,6 @@ public class CCMEncryption
     }
     private string[,] GenerateCounterBlock(int counter)
     {
-        // Convert counter to a 2x2 matrix (adjust based on your block size)
         string[,] counterMatrix = {
             { nonce[0, 0], nonce[0, 1] },
             { counter.ToString("X"), "0" }

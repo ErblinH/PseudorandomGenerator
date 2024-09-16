@@ -1,4 +1,4 @@
-﻿namespace PseudorandomGenerator.Application;
+﻿namespace PseudorandomGenerator.Application.Detyra1;
 
 public class SAESService
 {
@@ -199,9 +199,9 @@ public class SAESService
 
         rotatedList.Add(binaryList[0]);
 
-        int row = (rotatedList[0] << 1) | rotatedList[1];
+        int row = rotatedList[0] << 1 | rotatedList[1];
 
-        int col = (rotatedList[2] << 1) | rotatedList[3];
+        int col = rotatedList[2] << 1 | rotatedList[3];
 
         var sboxMpped = SBOX[row, col];
 

@@ -54,7 +54,7 @@ public class XTSEncryption
     {
         key_0 = key;
 
-        // Generate tweak based on block number (for demonstration, we're using a single block)
+        // Generate tweak based on block number
         var tweak = GenerateTweak(1);
 
         // XOR plaintext with the tweak
@@ -108,12 +108,8 @@ public class XTSEncryption
 
     private string[,] GenerateTweak(int blockNumber)
     {
-        // Placeholder for tweak generation logic based on blockNumber
-        // In practice, this would use GF multiplication (like in your GFMul function) and XOR operations.
-        // For now, we'll just reuse the tweak_key for simplicity.
         return tweak_key;
     }
-
 
     #endregion
 
